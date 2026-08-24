@@ -555,6 +555,59 @@ layout_column_wrap(
 ```
 
 
+Row {data-height=450}
+-----------------------------------------------------------------------
+
+
+```{r Avance por Area2}
+
+contador_area3 <- principal %>% 
+  filter(!is.na(area3)) %>% # Evitar vacios
+  mutate(label_area3 = paste0(pais," - ",area3)) %>%
+  group_by(label_area3,estado) %>% 
+  summarise(respuestas = n()) %>% 
+  mutate(prop = round(respuestas/sum(respuestas)*100,0)) %>%
+  pivot_wider(names_from = estado, values_from = c(respuestas,prop), values_fill = 0) %>% 
+  mutate(total_respuestas = rowSums(across(starts_with("respuestas"))),
+         total_prop = rowSums(across(starts_with("prop"))))
+
+
+layout_column_wrap(
+  width = 1,
+  height = 440,
+  card(
+  full_screen = TRUE,
+  card_body(
+   contador_area3 %>% 
+    hchart("bar", hcaes(x = label_area3, y = total_prop, z = total_respuestas), name = "Población", showInLegend = TRUE,
+           borderRadius = 10,
+           dataLabels=list(enabled=TRUE, format="{point.z:.0f}")) %>%
+    hc_add_series(type = "bar",data = contador_area3,hcaes(x = label_area3, y = prop_Completado, z = respuestas_Completado),
+                  name = "Completado", color = "#29BEB4",showInLegend = TRUE,
+                  borderRadius = 10,
+                  dataLabels=list(enabled=TRUE, format="<span style='color:{series.color}'>{point.z:.0f} ({point.y:.0f}%)</span>")) %>%
+    hc_title(text = "Avance de Respuestas por Sub área") %>%
+    # hc_subtitle(text = "Frecuencias por Nivel de Respuesta") %>%
+    hc_xAxis(title = list(text = "")) %>% 
+    hc_yAxis(title = list(text = "Porcentaje"),ceiling = 100, labels = list(format = "{text}%")) %>%
+    hc_colors(c("#EBEBEB"))%>%
+    hc_plotOptions(bar=list(
+      grouping = FALSE, 
+      # pointPadding = 0,      # SUPERPOSICIÓN TOTAL
+      pointPlacement = 0    # MISMA POSICIÓN EXACTA
+      # groupPadding = 0,      # MISMO GRUPO (sin separación)
+    )) %>%
+    hc_tooltip(pointFormat = "<span style='color:{point.color}'>●</span> {series.name}: <b>{point.z:.0f}
+               ({point.y:.0f}%)") %>% 
+    hc_scrollbar(enabled = TRUE) %>% 
+    hc_add_theme(tema_general_hc) %>% 
+    hc_exporting(enabled = TRUE)
+  ))
+)
+
+```
+
+
 Row {data-height=12}
 -----------------------------------------------------------------------
 
